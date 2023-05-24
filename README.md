@@ -1,12 +1,10 @@
 # About
 
-Created by: Espen Jægtvik
+Created by: Espen Jaegtvik
 
-Date: 10.05.2023
+Date: 24.05.2023
 
-Version: 1.4.2
-
-Contact: <ebj@atea.no>
+Version: 1.0.0
 
 # Purpose
 
