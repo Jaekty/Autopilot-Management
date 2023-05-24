@@ -6,6 +6,9 @@ Date: 24.05.2023
 
 Version: 1.0.0
 
+Info: Only .exe file is needed to run, however you may use source code (ps1) instead.
+Difference is .exe file do not require admin nor executionpolicy to be set, also runs process more smoothly (multiprocess).
+
 # Purpose
 
 Simplify the day for an Intune admin. Easily manage Autopilot devices.
