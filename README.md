@@ -32,11 +32,6 @@ Simplify the day for an Intune admin. Easily manage Autopilot devices.
 -   Query if devices are already uploaded using csv files (e.g. hardware
     hash file)
 
-# Disclaimer
-
-You, as the user of this program, acknowledge that you are solely responsible for the consequences of your actions while using the program. 
-Use in production environment with caution, especially in delete mode, as your actions may have irreversible effects as in permanently deleting Intune objects.
-
 # Features
 
 <img src="media/image1.png" style="width:6.3in;height:3.35764in" alt="Et bilde som inneholder bord Automatisk generert beskrivelse" />
