@@ -1,7 +1,3 @@
----
-title: Autopilot Management
----
-
 # About
 
 Created by: Espen Jægtvik
