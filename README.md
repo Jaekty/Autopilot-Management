@@ -17,9 +17,9 @@ Simplify the day for an Intune admin. Easily manage Autopilot devices.
 
     -   Device name (Intune)
 
-    -   Serial number
+    -   Serial number (Autopilot)
 
-    -   Any Autopilot-object property
+    -   Any Autopilot-/Intune object property
 
 -   Update / bulk update Group Tags
 
