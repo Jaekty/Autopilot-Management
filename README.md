@@ -2,9 +2,9 @@
 
 Created by: Espen Jaegtvik
 
-Date: 24.05.2023
+Date: 27.06.2023
 
-Version: 1.0.0
+Version: 1.0.1
 
 Info: Only .exe file is needed to run, however you may use source code (ps1) instead.
 Difference is .exe file do not require admin nor executionpolicy to be set, also runs process more smoothly (multiprocess).
@@ -194,7 +194,7 @@ It is therefore recommended to run with either:
 <thead>
 <tr class="header">
 <th><p>Your organization has also blocked ordinary users from accessing this or all Enterprise applications.</p>
-<p>Instead log in with a user that has admin rights. Preferrably Global admin or Intune admin.</p></th>
+<p>Instead log in with a user that has admin rights. Preferably Global admin or Intune admin.</p></th>
 </tr>
 </thead>
 <tbody>
@@ -212,13 +212,32 @@ It is therefore recommended to run with either:
 </colgroup>
 <thead>
 <tr class="header">
-<th><p>Consent to the app.</p>
+<th><p>Consent to the app Microsoft Intune PowerShell.</p>
+<p>Must be done by Global admin.</p>
 <p><strong>Important: make sure you select “Consent on behalf of your organization”.</strong></p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td><img src="media/image3.png" style="width:2.84375in;height:4.23225in" /></td>
+</tr>
+</tbody>
+</table>
+
+<table>
+<colgroup>
+<col style="width: 100%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th><p>Alternatively you can adminconsent to the Enterprise app by browsing to the following URL:</p>
+<p><a href="https://login.microsoftonline.com/common/adminconsent?client_id=d1ddf0e4-d672-4dae-b554-9d5bdfd93547">https://login.microsoftonline.com/common/adminconsent?client_id=d1ddf0e4-d672-4dae-b554-9d5bdfd93547</a></p>
+<p>Log in with Global admin.</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><img src="media/image4.png" style="width:3.07292in;height:6.44751in" /></td>
 </tr>
 </tbody>
 </table>
@@ -240,7 +259,7 @@ It is therefore recommended to run with either:
 </thead>
 <tbody>
 <tr class="odd">
-<td><img src="media/image4.png" style="width:3.375in;height:1.97643in" /></td>
+<td><img src="media/image5.png" style="width:3.375in;height:1.97643in" /></td>
 </tr>
 </tbody>
 </table>
@@ -261,24 +280,24 @@ It is therefore recommended to run with either:
 </thead>
 <tbody>
 <tr class="odd">
-<td><img src="media/image5.png" style="width:6.21875in;height:3.82023in" /></td>
+<td><img src="media/image6.png" style="width:6.21875in;height:3.82023in" /></td>
 </tr>
 </tbody>
 </table>
 
 | If it’s in the list and permissions seem ok, check if users are allowed to sign-in to the Enterprise app. “Enabled for users to sign-in” should be set to “Yes”. At the same time, if “Assignment required” is set to “Yes”, then you need to add your user under “Users and groups”. |
 |---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| <img src="media/image6.png" style="width:6.25in;height:4.54696in" alt="Et bilde som inneholder tekst Automatisk generert beskrivelse" />                                                                                                                                              |
+| <img src="media/image7.png" style="width:6.25in;height:4.54696in" alt="Et bilde som inneholder tekst Automatisk generert beskrivelse" />                                                                                                                                              |
 | Make sure your user is added here.                                                                                                                                                                                                                                                    |
-| <img src="media/image7.png" style="width:5.36276in;height:3in" />                                                                                                                                                                                                                     |
+| <img src="media/image8.png" style="width:5.36276in;height:3in" />                                                                                                                                                                                                                     |
 
 ## Enterprise app - Verify permissions
 
 | Go to permissions.                                                                                                                                                                 |
 |------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| <img src="media/image8.png" style="width:4.01696in;height:4.57292in" />                                                                                                            |
+| <img src="media/image9.png" style="width:4.01696in;height:4.57292in" />                                                                                                            |
 | It should look like this. Keep in mind the last two permissions might look a bit different for you (User.Read and Group.Read.All), this is fine, it is still the same permissions. |
-| <img src="media/image9.png" style="width:6.3in;height:3.36806in" />                                                                                                                |
+| <img src="media/image10.png" style="width:6.3in;height:3.36806in" />                                                                                                               |
 
 ## Can’t run exe-file
 

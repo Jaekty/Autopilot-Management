@@ -1,5 +1,6 @@
 #GUI - Autopilot Management
 #1.0 - 24.05.2023 - First version release
+#1.0.1 - 27.06.2023 - Removed unnecessary scope permission causing difficulties manually granting adminconsent
 
 #To-do:
 #Add logging window which can be opened with a checkbox
@@ -16,7 +17,7 @@
 #region Build GUI
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
-$version = "1.0.0"
+$version = "1.0.1"
 $title = "Autopilot Management"
 $titleCut = "AutopilotManagement"
 $inputXaml = @"
@@ -2061,7 +2062,7 @@ $syncHash.var_btnLoginAzure.Add_Click( {
         "Directory.Read.All"
         "User.Read"
         "Group.Read.All"
-        "Directory.AccessAsUser.All" #Extra: for deleting Azure AD devices
+        #"Directory.AccessAsUser.All" #Extra: for deleting Azure AD devices #27.06.2023 handled by MS backend
     )
     $redirectUri = "urn:ietf:wg:oauth:2.0:oob"
     $syncHash.token = Get-CodeFlowAuthToken -RedirectUri $redirectUri -Scope $scope -ClientId $syncHash.clientId
