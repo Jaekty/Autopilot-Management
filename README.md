@@ -2,12 +2,14 @@
 
 Created by: Espen Jaegtvik
 
-Date: 27.06.2023
+Date: 04.07.2023
 
-Version: 1.0.1
+Version: 1.1.0
 
-Info: Only .exe file is needed to run, however you may use source code (ps1) instead.
-Difference is .exe file do not require admin nor executionpolicy to be set, also runs process more smoothly (multiprocess).
+Info: Only .exe file is needed to run, however you may use source code
+(ps1) instead. The difference is .exe file do not require admin nor
+executionpolicy to be set, also runs process more smoothly
+(multiprocess).
 
 # Purpose
 
@@ -19,7 +21,7 @@ Simplify the day for an Intune admin. Easily manage Autopilot devices.
 
     -   Serial number (Autopilot)
 
-    -   Any Autopilot-/Intune object property
+    -   Any Autopilot-object property
 
 -   Update / bulk update Group Tags
 
@@ -34,7 +36,7 @@ Simplify the day for an Intune admin. Easily manage Autopilot devices.
 
 # Features
 
-<img src="media/image1.png" style="width:6.3in;height:3.35764in" alt="Et bilde som inneholder bord Automatisk generert beskrivelse" />
+<img src="media/image1.png" style="width:6.29167in;height:7.3125in" />
 
 For full experience, authenticate with a Global administrator or an
 Intune administrator.
@@ -60,6 +62,11 @@ Intune administrator.
 <td></td>
 </tr>
 <tr class="even">
+<td>Logout</td>
+<td>Activates after logging in. Logs the user out and stops the refresh token process. Disables the UI.</td>
+<td>Prompts for logout confirmation when theres an active job detected.</td>
+</tr>
+<tr class="odd">
 <td><p>Dropdown box</p>
 <ul>
 <li><p>Serial number</p></li>
@@ -72,7 +79,7 @@ Intune administrator.
 <p>“Any” will search all properties of Autopilot-object.</p></td>
 <td></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Query textbox</td>
 <td>Input what to search for.</td>
 <td><p>Device with serial number “PF98445”.</p>
@@ -84,17 +91,17 @@ Intune administrator.
 <p>? = any character</p>
 <p>* = any character between</p></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Query</td>
 <td>Start search. Textbox can be blank. Will then return all devices.</td>
 <td>Blank search on device name and serial number will return same result.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Group Tag, textbox</td>
 <td>Set your Group tag to update device with</td>
 <td>Ex. Group Tag “Admin”, must select both device from table and click “Update” to initiate.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Update / Delete, button</td>
 <td><p>Button changes between Update / Delete when checkbox “Update / Delete” is checked.</p>
 <p>Update:</p>
@@ -106,13 +113,13 @@ Intune administrator.
 <p>Delete:</p>
 <p>Limited to single device unless box “Disable delete limit” is checked. Will prompt for confirmation if Intune object exist.</p></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Backup</td>
 <td><p>Backup selected devices to %LOCALAPPDATA%\AutopilotManagement</p>
 <p><strong>THIS IS NOT A HARDWARE HASH BACKUP.</strong></p></td>
 <td>Makes a csv-file with all values shown (+ some more).</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Disable update limit</td>
 <td><p>Only works when “Update / Delete” checkbox is unchecked.</p>
 <p>To avoid ctrl + a (all devices selected), and wiping existing Group tag info, you must check this box to be able to edit more than five devices at once.</p>
@@ -120,51 +127,48 @@ Intune administrator.
 <td><p>If unselected:</p>
 <p>Selecting 5 (or more) devices in table and clicking “Update” will prompt a message stopping execution.</p></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Show Autopilot profile</td>
 <td>Check to add extra information to query. Query will take a long time in large environment, warning displayed when trying to query a 200+ device environment, asking if you want to disable Autopilot profile search.</td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Query with cache</td>
 <td>Recommended to use in large environments. Will save last query, which can then be reused with searches.</td>
 <td><p>Initiate a query. Cache size and “Query with cache” will be enabled.</p>
 <p>Check the box and you can search device name or serial number within the saved cache.</p></td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Update / Delete</td>
 <td>Changes between option to update or delete a device.</td>
 <td></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Disable delete limit</td>
 <td>Allow deleting multiple Autopilot objects. You will be warned if you attempt to delete an Intune device, as this is unrecoverable. You will also need the Autopilot hardware hash to readd device to Autopilot.</td>
 <td>Catastrophic consequence if all is selected, then deleted.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Load / Unload csv</td>
 <td>Allows you to search a csv-file if csv has column with name “Device Serial Number”. Will list devices found in csv and report on those not found.</td>
 <td>Can also be an actual Autopilot hardware hash csv-file.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>Upload Hash</td>
 <td><p>Upload hardware hash. Must be a valid hardware hash file for it to be enabled.</p>
 <p>Report is launched when import is complete.</p>
 <p>Supports multiple uploads/imports. Initiate one file at the time.</p></td>
 <td></td>
 </tr>
+<tr class="even">
+<td>Context menu (right click)</td>
+<td>Right click anywhere in the data grid and you can toggle columns to get desired information.</td>
+<td></td>
+</tr>
 </tbody>
 </table>
 
 # To do
-
--   After logged in change button to logout.
-
--   Make table customizable by right-clicking and selecting/deselecting
-    properties
-
-    -   For example option to add MAC-address and other (currently)
-        hidden properties
 
 -   Optimize queries
 

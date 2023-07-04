@@ -1,15 +1,18 @@
-#GUI - Autopilot Management
-#1.0 - 24.05.2023 - First version release
-#1.0.1 - 27.06.2023 - Removed unnecessary scope permission causing difficulties manually granting adminconsent
+#######################################
+###   Autopilot Management   ##########
+#######################################
+# Author - Espen Jaegtvik
+# GitHub - https://github.com/Jaekty/Autopilot-Management
+# 1.0 - 24.05.2023 - First version release
+# 1.0.1 - 27.06.2023 - Removed unnecessary scope permission causing difficulties manually granting adminconsent
+# 1.1.0 - 04.07.2023 - Context menu on datagrid (right click) to show/hide columns, changed global variables to script, grid counter, logout button
 
-#To-do:
-#Add logging window which can be opened with a checkbox
-#Permission check read for query, permission check admin for update group tag
-#Make all buttons into Powershell runspaces for efficiency
-#Save BitLocker info
-#Replace global variables with script or local
-#Right click header of datatable to filter columns, e.g. add MAC-address
-#Double click Autopilot object to list more Intune-information
+# To-do:
+# Add logging window which can be opened with a checkbox
+# Permission check read for query, permission check admin for update group tag
+# Make all buttons into Powershell runspaces for efficiency
+# Save BitLocker info
+# Double click Autopilot object to list more Intune-information
 
 ############################
 ###   BUILD GUI   ##########
@@ -17,31 +20,32 @@
 #region Build GUI
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
-$version = "1.0.1"
+$version = "1.1.0"
 $title = "Autopilot Management"
 $titleCut = "AutopilotManagement"
 $inputXaml = @"
-<Window x:Class="GUIAutopilotGroupTag1.MainWindow"
+<Window x:Class="AutopilotManagement.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:GUIAutopilotGroupTag1"
+        xmlns:local="clr-namespace:AutopilotManagement"
         mc:Ignorable="d"
         Title="$($title)" Height="550" Width="1500">
     <Grid>
         <Label x:Name="lblAuthor" Content="Author: Espen Jaegtvik - $($version)" HorizontalAlignment="Left" Margin="683,13,0,0" VerticalAlignment="Top" Opacity="0.5" FontSize="10" RenderTransformOrigin="0.917,0.259"/>
         <Label x:Name="lblSerialnumber" Content="Serialnumber" HorizontalAlignment="Left" Margin="603,35,0,0" VerticalAlignment="Top" FontSize="16" Visibility="Hidden"/>
         <Label x:Name="lblGroupTag" Content="Group Tag" HorizontalAlignment="Left" Margin="10,136,0,0" VerticalAlignment="Top" FontSize="16" Width="104"/>
-        <Label x:Name="lblProgress" Content="Progress:" HorizontalAlignment="Left" Margin="101,15,0,0" VerticalAlignment="Top" FontSize="16" Width="85"/>
+        <Label x:Name="lblProgress" Content="Progress:" HorizontalAlignment="Left" Margin="159,15,0,0" VerticalAlignment="Top" FontSize="16" Width="85"/>
         <Label x:Name="lblTenantName" Content="Tenant:" HorizontalAlignment="Left" Margin="10,54,0,0" VerticalAlignment="Top" FontSize="12" Width="300"/>
-        <Label x:Name="lblCacheSize" Content="Cache size: " HorizontalAlignment="Left" Margin="498,147,0,0" VerticalAlignment="Top" Opacity="0.8" Visibility="Hidden"/>
+        <Label x:Name="lblCacheSize" Content="Cache size: " HorizontalAlignment="Left" Margin="498,147,0,0" VerticalAlignment="Top" Opacity="0.8" Visibility="Visible"/>
         <Label x:Name="lblUploading" Content="Upload in progress..." HorizontalAlignment="Left" Margin="858,82,0,0" VerticalAlignment="Top" Width="111" Height="26" FontSize="10" Visibility="Hidden"/>
         <TextBlock x:Name="txtblkImportCsv" HorizontalAlignment="Left" Margin="700,99,0,0" TextWrapping="Wrap" Text="Csv imported and used for query: " VerticalAlignment="Top" Width="315" Height="52" Opacity="0.8" Visibility="Hidden"/>
-        <ProgressBar x:Name="progressBar" HorizontalAlignment="Left" Height="20" Margin="176,21,0,0" VerticalAlignment="Top" Width="219"/>
+        <ProgressBar x:Name="progressBar" HorizontalAlignment="Left" Height="20" Margin="249,21,0,0" VerticalAlignment="Top" Width="237"/>
         <TextBox x:Name="txtboxQuery" HorizontalAlignment="Left" Margin="163,94,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="232" Height="28" FontSize="12"/>
         <TextBox x:Name="txtboxGroupTag" HorizontalAlignment="Left" Margin="163,139,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="232" Height="28" FontSize="12"/>
         <Button x:Name="btnLoginAzure" Content="Login Azure" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="36" Width="76" FontSize="13"/>
+        <Button x:Name="btnLogout" Content="Logout" HorizontalAlignment="Left" Margin="98,10,0,0" VerticalAlignment="Top" Height="36" Width="56" FontSize="13" IsEnabled="False"/>
         <Button x:Name="btnBackupSelection" Content="Backup" HorizontalAlignment="Left" Margin="410,50,0,0" VerticalAlignment="Top" Height="28" Width="76" FontSize="16" IsEnabled="False" RenderTransformOrigin="0.461,0.037"/>
         <Button x:Name="btnQuery" Content="Query" HorizontalAlignment="Left" Margin="410,94,0,0" VerticalAlignment="Top" Height="28" Width="76" FontSize="16" IsEnabled="False"/>
         <Button x:Name="btnUpdateGroupTag" Content="Update" HorizontalAlignment="Left" Margin="410,138,0,0" VerticalAlignment="Top" Height="28" Width="76" FontSize="16" IsEnabled="False" RenderTransformOrigin="0.85,0.548"/>
@@ -59,55 +63,59 @@ $inputXaml = @"
             <ComboBoxItem Content="Any"/>
         </ComboBox>
         <DataGrid x:Name="datagridResults" d:ItemsSource="{d:SampleData ItemCount=5}" Margin="10,180,10,58" IsReadOnly="True" AutoGenerateColumns="True">
+            <DataGrid.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#0064FF"/>
+                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#CCDAFF"/>
+            </DataGrid.Resources>
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
             <DataGrid.Columns>
                 <!-- Autopilot -->
                 <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Serial number" Binding="{Binding serialNumber}"/>
                 <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Group Tag" Binding="{Binding groupTag}"/>
                 <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Manufacturer" Binding="{Binding manufacturer}"/>
                 <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Model" Binding="{Binding model}"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Enrollmentstate" Binding="{Binding enrollmentState}"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Enrollment state" Binding="{Binding enrollmentState}"/>
                 <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Last Contact" Binding="{Binding lastContactedDateTime}"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Profile assignmentstate" Binding="{Binding deploymentProfileAssignmentStatus}"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="id" Binding="{Binding id}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="deploymentProfileAssignmentDetailedStatus" Binding="{Binding deploymentProfileAssignmentDetailedStatus}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="deploymentProfileAssignedDateTime" Binding="{Binding deploymentProfileAssignedDateTime}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="purchaseOrderIdentifier" Binding="{Binding purchaseOrderIdentifier}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="productKey" Binding="{Binding productKey}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="addressableUserName" Binding="{Binding addressableUserName}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="userPrincipalName" Binding="{Binding userPrincipalName}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="resourceName" Binding="{Binding resourceName}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="skuNumber" Binding="{Binding skuNumber}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="systemFamily" Binding="{Binding systemFamily}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="azureActiveDirectoryDeviceId" Binding="{Binding azureActiveDirectoryDeviceId}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="azureAdDeviceId" Binding="{Binding azureAdDeviceId}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="managedDeviceId" Binding="{Binding managedDeviceId}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="displayName" Binding="{Binding displayName}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="deviceAccountUpn" Binding="{Binding deviceAccountUpn}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="deviceAccountPassword" Binding="{Binding deviceAccountPassword}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="deviceFriendlyName" Binding="{Binding deviceFriendlyName}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="remediationState" Binding="{Binding remediationState}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="remediationStateLastModifiedDateTime" Binding="{Binding remediationStateLastModifiedDateTime}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Profile assignment state" Binding="{Binding deploymentProfileAssignmentStatus}"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Id" Binding="{Binding id}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Deployment profile assignment detailed status" Binding="{Binding deploymentProfileAssignmentDetailedStatus}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Deployment profile assigned DateTime" Binding="{Binding deploymentProfileAssignedDateTime}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Purchase order identifier" Binding="{Binding purchaseOrderIdentifier}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Product key" Binding="{Binding productKey}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Addressable username" Binding="{Binding addressableUserName}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="User principal name" Binding="{Binding userPrincipalName}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Resource name" Binding="{Binding resourceName}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Sku number" Binding="{Binding skuNumber}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="System family" Binding="{Binding systemFamily}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Azure Active Directory device id" Binding="{Binding azureActiveDirectoryDeviceId}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Azure AD device id" Binding="{Binding azureAdDeviceId}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Managed device id" Binding="{Binding managedDeviceId}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Display name" Binding="{Binding displayName}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Device account UPN" Binding="{Binding deviceAccountUpn}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Device account password" Binding="{Binding deviceAccountPassword}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Device friendly name" Binding="{Binding deviceFriendlyName}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Remediation state" Binding="{Binding remediationState}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Remediation state last modified DateTime" Binding="{Binding remediationStateLastModifiedDateTime}" Visibility="Hidden"/>
                 <!-- Intune -->
                 <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Device name" Binding="{Binding intuneDeviceName}"/>
                 <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="User display name" Binding="{Binding intuneUserDisplayName}"/>
                 <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="User principal name" Binding="{Binding intuneUserPrincipalName}"/>
                 <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Intune id" Binding="{Binding intuneId}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Autopilot profile" Binding="{Binding intuneEnrollmentProfileName}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="intuneManagedDeviceOwnerType" Binding="{Binding intuneManagedDeviceOwnerType}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="intuneEnrolledDateTime" Binding="{Binding intuneEnrolledDateTime}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="intuneOsVersion" Binding="{Binding intuneOsVersion}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="intuneDeviceEnrollmentType" Binding="{Binding intuneDeviceEnrollmentType}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="intuneEmailAddress" Binding="{Binding intuneEmailAddress}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="intuneWifiMacAddress" Binding="{Binding intuneWifiMacAddress}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="intuneEthernetMacAddress" Binding="{Binding intuneEthernetMacAddress}" Visibility="Hidden"/>
-                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="intuneFreeStorageSpaceInBytes" Binding="{Binding intuneFreeStorageSpaceInBytes}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Intune enrollment profile name" Binding="{Binding intuneEnrollmentProfileName}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Intune managed device owner type" Binding="{Binding intuneManagedDeviceOwnerType}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Intune enrolled DateTime" Binding="{Binding intuneEnrolledDateTime}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Intune OS version" Binding="{Binding intuneOsVersion}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Intune device enrollment type" Binding="{Binding intuneDeviceEnrollmentType}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Intune email address" Binding="{Binding intuneEmailAddress}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Intune Wifi MAC address" Binding="{Binding intuneWifiMacAddress}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Intune Ethernet MAC address" Binding="{Binding intuneEthernetMacAddress}" Visibility="Hidden"/>
+                <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Intune free storage space in Bytes" Binding="{Binding intuneFreeStorageSpaceInBytes}" Visibility="Hidden"/>
                 <!-- Autopilot profile -->
                 <DataGridTextColumn CanUserSort="True" CanUserReorder="True" Header="Autopilot profile" Binding="{Binding autopilotDeploymentProfile}"/>
             </DataGrid.Columns>
-            <DataGrid.Resources>
-                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#0064FF"/>
-                <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="#CCDAFF"/>
-            </DataGrid.Resources>
         </DataGrid>
     </Grid>
 </Window>
@@ -115,12 +123,12 @@ $inputXaml = @"
 
 #Cleanup XAML
 $xaml = $inputXaml -Replace 'mc:Ignorable="d"', '' -Replace "x:N", 'N' -Replace '^<Win.*', '<Window' `
-                   -Replace 'd:ItemsSource="{d:SampleData ItemCount=5}"', '' -Replace "x:Class=`"GUIAutopilotGroupTag1.MainWindow`"", ""
+                   -Replace 'd:ItemsSource="{d:SampleData ItemCount=5}"', '' -Replace "x:Class=`"AutopilotManagement.MainWindow`"", ""
 [XML]$xaml = $xaml
 
 #Read XAML
 $reader = (New-Object System.Xml.XmlNodeReader $xaml)
-$global:syncHash = [Hashtable]::Synchronized(@{})
+$script:syncHash = [Hashtable]::Synchronized(@{})
 
 try {
     $syncHash.Window = [Windows.Markup.XamlReader]::Load($reader)
@@ -138,13 +146,13 @@ $xaml.SelectNodes("//*[@Name]") | ForEach-Object {
         throw
     }
 }
-$global:syncHash.token = $null
-$global:syncHash.tokenAcquired = $null
-$global:syncHash.headers = $null
-$global:syncHash.cache = $null
-$global:syncHash.csvDevices = $null
-$global:syncHash.hashUploading = [System.Collections.ArrayList]::New()
-$global:syncHash.apImportStatus = [System.Collections.ArrayList]::New()
+$script:syncHash.token = $null
+$script:syncHash.tokenAcquired = $null
+$script:syncHash.headers = $null
+$script:syncHash.cache = $null
+$script:syncHash.csvDevices = $null
+$script:syncHash.hashUploading = [System.Collections.ArrayList]::New()
+$script:syncHash.apImportStatus = [System.Collections.ArrayList]::New()
 
 #endregion Build GUI
 
@@ -346,6 +354,49 @@ Function Get-CodeFlowAuthToken {
 }
 #endregion token
 
+Function Disconnect-Azure {
+    #Logout from Azure and clear token
+    param(
+        [Parameter(
+            Mandatory=$false,
+            HelpMessage="Client app client Id, ex. `"d1ddf0e4-d672-4dae-b554-9d5bdfd93547`" for Microsoft Intune Powershell .")]
+            [string]$ClientId,
+        [Parameter(
+            Mandatory=$false,
+            HelpMessage="Force logout of session and clear token.")]
+            [switch]$Force
+    )
+    $Logout = {
+        Invoke-RestMethod -Uri "https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=urn:ietf:wg:oauth:2.0:oob&clientId=$($ClientId)" | Out-Null
+        $syncHash.token = $null
+        Disable-UI
+        Write-Host "User logged out."
+    }
+    if ($Force) {
+        #Ignore any active queries
+        & $Logout
+    } else {
+        #Insert check for active Autopilot search
+        #Code here
+        #Check if token is still required
+        $runspace = Get-Runspace | Where-Object {$_.Custom -in "ImportAPDevices" -and $_.RunspaceAvailability -ne "Available"}
+        if (-not [string]::IsNullOrEmpty($runspace)) {
+            $confirmLogout = [System.Windows.Forms.MessageBox]::Show("Jobs are still active.`nLogging out might make queries incomplete.`nAre you sure you want to log out?","Active jobs","YesNoCancel","Warning","Button2")
+            if ($confirmLogout -eq "Yes") {
+                & $Logout
+            } else {
+                Write-Host "Logout cancelled by user."
+                return $false
+            }
+        } else {
+            & $Logout
+        }
+    }
+    
+    return $true
+
+}
+
 Function Get-TenantName {
     [cmdletbinding()]
     param(
@@ -469,7 +520,7 @@ Function Confirm-TokenValidity {
     return $tokenValid
 }
 
-Function Refresh-Token {
+Function Update-Token {
     #Run in a runspace to continuously refresh token when needed. Requires global variables to be able to update token
     do {
         Switch ($syncHash.token.ext_expires_in) {
@@ -481,9 +532,9 @@ Function Refresh-Token {
             default {$refreshTimer = 200}
         }
         if (($syncHash.tokenAcquired).AddSeconds($syncHash.token.ext_expires_in - $refreshTimer) -gt (Get-Date)) {
-            Write-Host "No need to refresh"
+            Write-Host "Token still valid. No need to refresh token."
         } else {
-            Write-Host "Refresh"
+            Write-Host "Token about to expire. Refresh token."
             try {
                 #Refresh token
                 $ErrorActionPreference = "Stop"
@@ -501,6 +552,7 @@ Function Refresh-Token {
 }
 
 Function Disable-UI {
+    $syncHash.var_btnLogout.IsEnabled = $false
     $syncHash.var_btnUpdateGroupTag.IsEnabled = $false
     $syncHash.var_btnQuery.IsEnabled = $false
     $syncHash.var_btnBackupSelection.IsEnabled = $false
@@ -859,7 +911,7 @@ Function Search-AutopilotDevice {
                 $syncHash.tempDatagrid += $tempObject
             }
         }
-        
+
         #Update datagrid with Intune and Autopilotprofile info
         #Create batch query and split into 20 per query, which is the limit
         #region intunebatch
@@ -1962,7 +2014,6 @@ Function Watch-APImportRunspace {
     }
 }
 
-
 Function Write-Outfile {
     #Function that will create a log file for you.
     param(
@@ -2024,6 +2075,131 @@ Function Compare-PSObjectIdentity {
     return $equal
 }
 
+
+Function Invoke-MenuItemAction {
+    #Support function to update context menu visibility
+    Param(
+        [Parameter(
+            Mandatory=$true,
+            HelpMessage="Object passed from the invoke/click.")]
+            $Sender,
+        [Parameter(
+            Mandatory=$true,
+            HelpMessage="Datagrid columns existing in the datagrid. Needed to update the context menu accordingly.")]
+            [array]$Columns,
+        [Parameter(
+            Mandatory=$true,
+            HelpMessage="The whole context menu object.")]
+            [System.Windows.Controls.ContextMenu]$ContextMenu,
+        [Parameter(
+            Mandatory=$false,
+            HelpMessage="The list/array of default menu items.")]
+            [array]$DefaultMenuItems
+    )
+    if (-not $DefaultMenuItems) {
+        $defaultItemMenu = @(
+            "Serial number",
+            "Group Tag",
+            "Manufacturer",
+            "Model",
+            "Enrollmentstate",
+            "Last Contact",
+            "Profile assignmentstate",
+            "Device name",
+            "User display name",
+            "User principal name",
+            "Autopilot profile"
+        )
+    }
+    
+    Write-Host "Menu item $($sender.Header) invoked."
+    switch ($Sender.Header) {
+        "Select all" {
+            foreach ($column in $Columns) {
+                $column.Visibility = [Windows.Visibility]::Visible
+                foreach ($menuItem in $ContextMenu.Items | Where-Object {$_.Header -notin "Select all","Select none","Select default"}) {
+                    $menuItem.IsChecked = $true
+                }
+            }
+        }
+        "Select none" {
+            foreach ($column in $Columns) {
+                $column.Visibility = [Windows.Visibility]::Hidden
+                foreach ($menuItem in $ContextMenu.Items | Where-Object {$_.Header -notin "Select all","Select none","Select default"}) {
+                    $menuItem.IsChecked = $false
+                }
+            }
+        }
+        "Select default" {
+            foreach ($menuItem in $ContextMenu.Items | Where-Object {$_.Header -notin "Select all","Select none","Select default",$defaultItemMenu}) {
+                $column.Visibility = [Windows.Visibility]::Hidden
+                $menuItem.IsChecked = $false
+            }
+            foreach ($menuItem in $ContextMenu.Items | Where-Object {$_.Header -in $defaultItemMenu}) {
+                $column.Visibility = [Windows.Visibility]::Visible
+                $menuItem.IsChecked = $true
+            }
+            foreach ($column in $Columns) {
+                if ($column.Header -in $defaultItemMenu) {
+                    $column.Visibility = [Windows.Visibility]::Visible
+                } else {
+                    $column.Visibility = [Windows.Visibility]::Hidden
+                }
+            }
+        }
+        default {
+            foreach ($column in $Columns) {
+                if ($column.Header -eq $sender.Header) {
+                    if ($column.Visibility -eq [Windows.Visibility]::Visible) {
+                        $column.Visibility = [Windows.Visibility]::Hidden
+                        $sender.IsChecked = $false
+                    } else {
+                        $column.Visibility = [Windows.Visibility]::Visible
+                        $sender.IsChecked = $true
+                    }
+                }
+            }
+        }
+    }
+
+}
+
+Function Add-MenuItem {
+    #Function to add menu items to context menu
+    Param(
+        [Parameter(
+            Mandatory=$true,
+            HelpMessage="The whole context menu object.")]
+            [System.Windows.Controls.ContextMenu]$ContextMenu,
+        [Parameter(
+            Mandatory=$true,
+            HelpMessage="Header of menu item. Can be an array of strings")]
+            [array]$ItemHeaders,
+        [Parameter(
+            Mandatory=$false,
+            HelpMessage="All the columns residing in the datagrid.")]
+            [array]$Columns,
+        [Parameter(
+            Mandatory=$false,
+            HelpMessage="Toggle visibility.")]
+            [switch]$Visibility
+    )
+
+    foreach ($header in $ItemHeaders) {
+        $menuItem = New-Object Windows.Controls.MenuItem
+        $menuItem.Header = $header
+        if ($Visibility) {
+            $menuItem.IsChecked = ($columns | Where-Object {$_.Header -eq $header}).Visibility -eq [Windows.Visibility]::Visible
+        }
+        $menuItem.Add_Click( {
+            param($sender)
+            Invoke-MenuItemAction -Sender $sender -Columns $columns -ContextMenu $ContextMenu
+        })
+        [void]$contextMenu.Items.Add($menuItem)
+    }
+}
+
+
 #endregion Functions
 
 ############################
@@ -2062,7 +2238,7 @@ $syncHash.var_btnLoginAzure.Add_Click( {
         "Directory.Read.All"
         "User.Read"
         "Group.Read.All"
-        #"Directory.AccessAsUser.All" #Extra: for deleting Azure AD devices #27.06.2023 handled by MS backend
+        #"Directory.AccessAsUser.All" #Extra: for deleting Azure AD devices #Removed 27.06.2023 handled by MS backend
     )
     $redirectUri = "urn:ietf:wg:oauth:2.0:oob"
     $syncHash.token = Get-CodeFlowAuthToken -RedirectUri $redirectUri -Scope $scope -ClientId $syncHash.clientId
@@ -2082,11 +2258,12 @@ $syncHash.var_btnLoginAzure.Add_Click( {
         $runspace.Open()
         $runspace.SessionStateProxy.SetVariable("syncHash",$syncHash) #Add variables
         $runspace.SessionStateProxy.SetVariable("titleCut",$titleCut) #Add variables
-        $powershell.AddScript( { Refresh-Token } ) #Code to run
+        $powershell.AddScript( { Update-Token } ) #Code to run
         $runspace | Add-Member -MemberType NoteProperty -Name "Custom" -Value "RefreshToken" #Information about runspace
         $asyncObject = $powershell.BeginInvoke() #Start runspace
         
         #Enable UI
+        $syncHash.var_btnLogout.IsEnabled = $true
         $syncHash.var_btnQuery.IsEnabled = $true
         $syncHash.var_chkboxLimitUpdate.IsEnabled = $true
         $syncHash.var_chkboxAutopilotprofile.IsEnabled = $true
@@ -2098,6 +2275,11 @@ $syncHash.var_btnLoginAzure.Add_Click( {
     }
     #Populate tenantname
     $syncHash.var_lblTenantName.Content = "Tenant name: $(Get-TenantName -Token $syncHash.token)"
+} )
+
+$syncHash.var_btnLogout.Add_Click( {
+    #Logout from Azure and clear token
+    Disconnect-Azure -ClientId $syncHash.clientId
 } )
 
 $syncHash.var_btnQuery.Add_Click( {
@@ -2182,6 +2364,9 @@ $syncHash.var_btnQuery.Add_Click( {
             }
         }
     }
+    #Count devices visible in datagrid
+    $syncHash.var_lblCacheSize.Content -match "(^Cache\ssize:\s\d*\sdevices)" | Out-Null
+    Update-Cache -Object $syncHash.var_lblCacheSize -Text "$($Matches[1]) | Grid count: $($syncHash.var_datagridResults.Items.Count) devices" -Enabled
 
 } )
 
@@ -2362,14 +2547,37 @@ $syncHash.var_btnUploadHash.Add_Click( {
     Import-APDevices
 } )
 
+#Build context menu for the datagrid
+$contextMenu = $syncHash.var_datagridResults.ContextMenu
+#Add some menu items to contextmenu for basic control
+Add-MenuItem -ContextMenu $contextMenu -ItemHeader "Select all","Select none","Select default"
+#Add columns as menu items
+$columns = $syncHash.var_datagridResults.Columns
+foreach ($column in $columns) {
+    Add-MenuItem -ContextMenu $contextMenu -ItemHeader $column.Header -Columns $columns -Visibility
+}
+
+
 #endregion UI
 
 ############################
 ###   LAUNCH GUI  ##########
 ############################ 
 
+$syncHash.Window.Add_Closing( {
+    param($sender,$eventargs)
+    try {
+        $disconnectAzure = Disconnect-Azure -ClientId $syncHash.clientId
+    } catch {
+        $disconnectAzure = $false
+    } finally {
+        if (-not $disconnectAzure) {
+            $eventargs.Cancel = $true
+        } 
+    }
+} )
+
 $syncHash.Window.Add_Closed( {
-    $syncHash.windowIsLoaded = $false
     Write-Host "GUI was closed."
 } )
 
