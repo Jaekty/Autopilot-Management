@@ -6,6 +6,7 @@
 # 1.0 - 24.05.2023 - First version release
 # 1.0.1 - 27.06.2023 - Removed unnecessary scope permission causing difficulties manually granting adminconsent
 # 1.1.0 - 04.07.2023 - Context menu on datagrid (right click) to show/hide columns, changed global variables to script, grid counter, logout button
+# 1.1.1 - 18.07.2023 - Bugfix Autopilot upload report
 
 # To-do:
 # Add logging window which can be opened with a checkbox
@@ -20,7 +21,7 @@
 #region Build GUI
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
-$version = "1.1.0"
+$version = "1.1.1"
 $title = "Autopilot Management"
 $titleCut = "AutopilotManagement"
 $inputXaml = @"
@@ -1860,7 +1861,10 @@ Function Import-APDevices {
             $importIds += $responses[$i].value.importId[0]
         }
     } else {
-        $importIds = $responses[0].value.importId[0]
+        $importIds = $responses[0].value.importId
+        if ($importIds.Count -gt 1) {
+            $importIds = $importIds[0]
+        }
     }
 
     
