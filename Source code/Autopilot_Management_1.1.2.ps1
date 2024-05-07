@@ -3,10 +3,11 @@
 #######################################
 # Author - Espen Jaegtvik
 # GitHub - https://github.com/Jaekty/Autopilot-Management
-# 1.0 - 24.05.2023 - First version release
+# 1.0   - 24.05.2023 - First version release
 # 1.0.1 - 27.06.2023 - Removed unnecessary scope permission causing difficulties manually granting adminconsent
 # 1.1.0 - 04.07.2023 - Context menu on datagrid (right click) to show/hide columns, changed global variables to script, grid counter, logout button
 # 1.1.1 - 18.07.2023 - Bugfix Autopilot upload report
+# 1.1.2 - 07.05.2024 - Replaced deprecated Enterprise App "Microsoft Intune PowerShell" with "Microsoft Graph Command Line Tools" for authentication. Also fixed a bug where the last 20 objects during group tag change were ignored
 
 # To-do:
 # Add logging window which can be opened with a checkbox
@@ -14,6 +15,7 @@
 # Make all buttons into Powershell runspaces for efficiency
 # Save BitLocker info
 # Double click Autopilot object to list more Intune-information
+# Authentication with webview2
 
 ############################
 ###   BUILD GUI   ##########
@@ -21,7 +23,7 @@
 #region Build GUI
 Add-Type -AssemblyName PresentationFramework
 Add-Type -AssemblyName System.Windows.Forms
-$version = "1.1.1"
+$version = "1.1.2"
 $title = "Autopilot Management"
 $titleCut = "AutopilotManagement"
 $inputXaml = @"
@@ -368,7 +370,7 @@ Function Disconnect-Azure {
             [switch]$Force
     )
     $Logout = {
-        Invoke-RestMethod -Uri "https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=urn:ietf:wg:oauth:2.0:oob&clientId=$($ClientId)" | Out-Null
+        Invoke-RestMethod -Uri "https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=$RedirectUri&clientId=$($ClientId)" | Out-Null
         $syncHash.token = $null
         Disable-UI
         Write-Host "User logged out."
@@ -704,7 +706,7 @@ Function Search-AutopilotDevice {
             $query = Invoke-RestMethod -Headers $syncHash.headers -Uri $uri -Method Get
         } catch {
             Write-Host "Access denied."
-            [System.Windows.Forms.MessageBox]::Show("Failed to update device(s).`nMake sure you have one of the following roles:`n- Intune Administrator`n- Global Admin`n`nEnterprise application:`n- `"Microsoft Intune Powershell`" must be admin consented.`n- You must be granted permission to login to the Enterprise app.","Insufficient permissions","OK","Error") | Out-Null
+            [System.Windows.Forms.MessageBox]::Show("Failed to update device(s).`nMake sure you have one of the following roles:`n- Intune Administrator`n- Global Admin`n`nEnterprise application:`n- `"Microsoft Graph Command Line Tools`" must be admin consented.`n- You must be granted permission to login to the Enterprise app.","Insufficient permissions","OK","Error") | Out-Null
             return
         }
         $nextLink = $query.'@odata.nextLink'
@@ -2228,7 +2230,7 @@ Get-ChildItem Function:/ | Where-Object Source -like "" | ForEach-Object {
 $syncHash.var_btnLoginAzure.Add_Click( {
     Disable-UI
     $syncHash.token = $null
-    $syncHash.clientId = "d1ddf0e4-d672-4dae-b554-9d5bdfd93547" #Microsoft Intune Powershell
+    $syncHash.clientId = "14d82eec-204b-4c2f-b7e8-296a70dab67e" #Microsoft Graph Command Line Tools
     $scope = @(
         "openid"
         "offline_access"
@@ -2244,7 +2246,7 @@ $syncHash.var_btnLoginAzure.Add_Click( {
         "Group.Read.All"
         #"Directory.AccessAsUser.All" #Extra: for deleting Azure AD devices #Removed 27.06.2023 handled by MS backend
     )
-    $redirectUri = "urn:ietf:wg:oauth:2.0:oob"
+    $redirectUri = "http://localhost"
     $syncHash.token = Get-CodeFlowAuthToken -RedirectUri $redirectUri -Scope $scope -ClientId $syncHash.clientId
     $syncHash.tokenAcquired = Get-Date
     if ($syncHash.token) {
@@ -2402,7 +2404,7 @@ $syncHash.var_btnUpdateGroupTag.Add_Click( {
                     "requests": [
                 '
             #Determine how many objects to put in batch, limit is always 20, but we might have less objects left
-            if (($syncHash.var_dataGridResults.SelectedItems.Count - ($objectTracker + 1) -lt 20)) {
+            if (($syncHash.var_dataGridResults.SelectedItems.Count - $objectTracker -lt 20)) { # - ($objectTracker + 1)
                 #Less than 20 objects remaining
                 $x = $objectsFinalBatch
             } else {
@@ -2449,6 +2451,7 @@ $syncHash.var_btnUpdateGroupTag.Add_Click( {
                 ]
             }
             '
+
             #Query Graph and sort result
             $response = Invoke-RestMethod -Headers $syncHash.headers -uri "https://graph.microsoft.com/beta/`$batch" -Method Post -Body $batches
             if ($response.responses.status -eq 403) {

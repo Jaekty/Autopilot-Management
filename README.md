@@ -57,7 +57,7 @@ Intune administrator.
 <tbody>
 <tr class="odd">
 <td>Login Azure</td>
-<td><p>Authenticate to Azure. Supports MFA. Uses the Enterprise App “Microsoft Intune Powershell” for queries to Graph. Therefore you might be asked to consent to the app.</p>
+<td><p>Authenticate to Azure. Supports MFA. Uses the Enterprise App “Microsoft Graph Command Line Tools” for queries to Graph. Therefore you might be asked to consent to the app.</p>
 <p>Authenticated token will automatically refresh.</p></td>
 <td></td>
 </tr>
@@ -180,14 +180,14 @@ Intune administrator.
 
 # Troubleshooting
 
-You will be able to authenticate with the role “Global Reader”, however
+You will be able to authenticate with any user, however
 you will get an error when trying to modify a device.
 
 It is therefore recommended to run with either:
 
 -   Global administrator
 
--   Intune administrator
+-   Intune administrator (least privilege)
 
 ## Trouble signing you in
 
@@ -216,9 +216,9 @@ It is therefore recommended to run with either:
 </colgroup>
 <thead>
 <tr class="header">
-<th><p>Consent to the app Microsoft Intune PowerShell.</p>
-<p>Must be done by Global admin.</p>
-<p><strong>Important: make sure you select “Consent on behalf of your organization”.</strong></p></th>
+<th><p>Consent to the app Microsoft Graph Command Line Tools.</p>
+<p>Must be done by Global admin, Application admin or Cloud application admin.</p>
+<p><strong>To allow other admins to use tool (with less/other privileges, ex. Intune admin): make sure you select "Consent on behalf of your organization".</strong></p></th>
 </tr>
 </thead>
 <tbody>
@@ -234,9 +234,9 @@ It is therefore recommended to run with either:
 </colgroup>
 <thead>
 <tr class="header">
-<th><p>Alternatively you can adminconsent to the Enterprise app by browsing to the following URL:</p>
-<p><a href="https://login.microsoftonline.com/common/adminconsent?client_id=d1ddf0e4-d672-4dae-b554-9d5bdfd93547">https://login.microsoftonline.com/common/adminconsent?client_id=d1ddf0e4-d672-4dae-b554-9d5bdfd93547</a></p>
-<p>Log in with Global admin.</p></th>
+<th><p>Alternatively you can adminconsent to the Enterprise app using PowerShell, see detailed description by Microsoft here:</p>
+<p><a href="https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/grant-consent-single-user?pivots=msgraph-powershell">https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/grant-consent-single-user?pivots=msgraph-powershell</a></p>
+<p>Do so with Global admin, Application admin or Cloud application admin. Make sure you add these permissions as part of the script:</p></th>
 </tr>
 </thead>
 <tbody>
@@ -277,9 +277,9 @@ It is therefore recommended to run with either:
 <thead>
 <tr class="header">
 <th><p>Verify the following properties in the Enterprise app.</p>
-<p>Go to: <a href="https://portal.azure.com">https://portal.azure.com</a> -&gt; Search “Enterprise applications”</p>
-<p>If you see the app “Microsoft Intune Powershell” in the application list, it means you or someone else has already consented to it. Click it.</p>
-<p>(If you don’t see it, then go to this place in the guide).</p></th>
+<p>Go to: <a href="https://portal.azure.com">https://portal.azure.com</a> -&gt; Search "Enterprise applications"</p>
+<p>If you see the app “Microsoft Graph Command Line Tools” in the application list, it means you or someone else has already consented to it. Click it.</p>
+<p>(If you don’t see it, go to chapter "Enterprise app - Consent").</p></th>
 </tr>
 </thead>
 <tbody>
