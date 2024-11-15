@@ -2,9 +2,9 @@
 
 Created by: Espen Jaegtvik
 
-Date: 07.05.2024
+Date: 15.11.2024
 
-Version: 1.1.2
+Version: 1.2.0
 
 Info: Only .exe file is needed to run, however you may use source code
 (ps1) instead. The difference is .exe file do not require admin nor
