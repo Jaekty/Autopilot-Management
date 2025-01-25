@@ -2,9 +2,9 @@
 
 Created by: Espen Jaegtvik
 
-Date: 15.11.2024
+Date: 25.01.2024
 
-Version: 1.2.0
+Version: 1.3.0
 
 Info: Only .exe file is needed to run, however you may use source code
 (ps1) instead. The difference is .exe file do not require admin nor
@@ -25,7 +25,7 @@ Simplify the day for an Intune admin. Easily manage Autopilot devices.
 
 -   Update / bulk update Group Tags
 
--   Delete / bulk delete devices from Autopilot, Intune and Azure AD
+-   Delete / bulk delete devices from Autopilot or Intune or both
 
 -   Sort the table
 
