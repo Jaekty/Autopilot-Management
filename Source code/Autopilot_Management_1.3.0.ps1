@@ -9,7 +9,7 @@
 # 1.1.1 - 18.07.2023 - Bugfix Autopilot upload report.
 # 1.1.2 - 07.05.2024 - Replaced deprecated Enterprise App "Microsoft Intune PowerShell" with "Microsoft Graph Command Line Tools" for authentication. Also fixed a bug where the last 20 objects during group tag change were ignored.
 # 1.2.0 - 15.11.2024 - Now supporting passwordless authentication with WebView2 Edge browser. Query throttle handling. Cache as default. Version check.
-# 1.3.0 - 23.01.2025 - Rewrote some code, primarily deletion; added delete options only Intune, only Autopilot or both. Bugfix Autopilot upload, was missing "Assigned User".
+# 1.3.0 - 25.01.2025 - Rewrote some code, primarily deletion; added delete options only Intune, only Autopilot or both. Bugfix Autopilot upload, was missing "Assigned User" and Group Tag handling was off.
 
 # To-do:
 # Add logging window which can be opened with a checkbox
@@ -1541,9 +1541,9 @@ Function Search-AutopilotDevice {
 }
 
 Function Test-DeleteLimit {
-    #If limit is not checked:
+    #If limit is not checked we delete a maximum of 1 device
     if ($syncHash.var_chkboxLimitDelete.IsChecked -eq $false) {
-        Switch ($syncHash.var_datagridResults.SelectedItems.Count) {
+        switch ($syncHash.var_datagridResults.SelectedItems.Count) {
             "0" {[System.Windows.Forms.MessageBox]::Show("Make a selection to delete a device.`n","Make a selection","OK","Information") | Out-Null; $continue = $false}
             {$_ -ge "2"} {[System.Windows.Forms.MessageBox]::Show("Deletion is limited to one device at a time.","Too many selections","OK","Information") | Out-Null; $continue = $false}
             "1" {$continue = $true}
@@ -1557,16 +1557,16 @@ Function Test-DeleteLimit {
 }
 
 Function Test-UpdateLimit {
-    #If limit is not checked:
+    #If limit is not checked we update a maximum of 5 devices
     if ($syncHash.var_chkboxLimitUpdate.IsChecked -eq $false) {
-        Switch ($syncHash.var_datagridResults.SelectedItems.Count) {
-            "0" {[System.Windows.Forms.MessageBox]::Show("Make a selection to delete a device.`n","Make a selection","OK","Information") | Out-Null; $continue = $false}
-            {$_ -ge "2"} {[System.Windows.Forms.MessageBox]::Show("Deletion is limited to one device at a time.","Too many selections","OK","Information") | Out-Null; $continue = $false}
-            "1" {$continue = $true}
+        switch ($syncHash.var_datagridResults.SelectedItems.Count) {
+            "0" {[System.Windows.Forms.MessageBox]::Show("Make a selection to update Group Tag of a device.`n","Make a selection","OK","Information") | Out-Null; $continue = $false}
+            {$_ -lt "6"} {$continue = $true}
+            {$_ -ge "6"} {[System.Windows.Forms.MessageBox]::Show("Update is limited to five devices at a time.","Too many selections","OK","Information") | Out-Null; $continue = $false}
             default {Write-Host "Not sure what happened, will exit."; $continue = $false}
         }
     } else {
-        Write-Host "Set to override delete limit of 1."
+        Write-Host "Set to override update limit of 5."
         $continue = $true
     }
     return $continue
@@ -1898,7 +1898,7 @@ Function Import-APDevices {
         [System.Windows.Forms.MessageBox]::Show("Invalid headers in csv-file.`nMake sure this is a valid Autopilot hash file","Invalid Autopilot csv","OK","Warning") | Out-Null
         return
     }
-    if ($invalidDomainText -ne "") {
+    if ([string]::IsNullOrEmpty($invalidDomainText) -eq $false) {
         [System.Windows.Forms.MessageBox]::Show("$($invalidDomainText)","Invalid assigned user","OK","Error") | Out-Null
         return
     }
@@ -2589,10 +2589,9 @@ $syncHash.var_btnUpdateGroupTag.Add_Click( {
     $syncHash.var_txtboxGroupTag.Text = $syncHash.var_txtboxGroupTag.Text.TrimStart(" ").TrimEnd(" ")
     $syncHash.txtboxGroupTag = $syncHash.var_txtboxGroupTag.Text
     #Check if multiple selections are made and if we are to override
-    if ($syncHash.var_datagridResults.SelectedItems.Count -ge 5 -and $syncHash.var_chkboxLimitUpdate.IsChecked -eq $false) {
-        [System.Windows.Forms.MessageBox]::Show("Too many selections.`nNo changes were made.`nUse checkbox to override.","Too many selections","OK","Information") | Out-Null
-    } elseif ($syncHash.var_datagridResults.SelectedItems.Count -lt 1) {
-        [System.Windows.Forms.MessageBox]::Show("No selections.`nNo changes were made.`nQuery, then click item in list to change.","No selections","OK","Information") | Out-Null
+    $continue = Test-UpdateLimit
+    if ($continue -ne $true) {
+        return
     } else {
         $objectsFinalBatch = $syncHash.var_dataGridResults.SelectedItems.Count % 20
         $objectTracker = 0
